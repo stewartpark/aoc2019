@@ -19,11 +19,20 @@ int main(int argc, char **argv) {
 
   FILE* fp = fopen(argv[1], "r");
   char *buf = (char *)malloc(MAX_FILE_SIZE);
-  fgets(buf, MAX_FILE_SIZE, fp);
+  fread(buf, 1, MAX_FILE_SIZE, fp);
   fclose(fp);
 
   intcode_vm* vm = intcode_vm_new(buf);
-  printf("%d\n", intcode_vm_run(vm));
+
+  #ifdef DEBUG
+  printf("================ MEMORY =================\n");
+  for(intcode_int i = 0;i < vm->mem_size;) {
+    i += intcode_vm_decode_and_print(vm, i);
+  }
+  printf("=========================================\n");
+  #endif
+
+  intcode_vm_run(vm);
   intcode_vm_destroy(&vm);
   free(buf);
 

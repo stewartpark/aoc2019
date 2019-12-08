@@ -46,6 +46,11 @@ const char *intcode_vm_get_opcode_str(intcode_int opcode) {
     return "OUT";
   case OP_HALT:
     return "HALT";
+  // Added, not in the original spec
+  case OP_DIV:
+    return "DIV";
+  case OP_JGE:
+    return "JGE";
   default:
     return "INVALID";
   }
@@ -63,6 +68,11 @@ unsigned int intcode_vm_get_opcode_n_operands(intcode_int opcode) {
     return 1;
   case OP_HALT:
     return 0;
+  // Added, not in the original spec
+  case OP_DIV:
+    return 3;
+  case OP_JGE:
+    return 3;
   default:
     return 0;
   }
@@ -91,11 +101,12 @@ intcode_int intcode_vm_run(intcode_vm* vm) {
 #define FETCH_OPERAND(offset) (vm->mem_size <= (unsigned int)vm->mem[vm->ip + offset] ? intcode_vm_panic(vm, "bad position") : vm->mem[vm->ip + offset])
 #define OPERAND_REF(offset) (vm->mem[FETCH_OPERAND(offset)])
 #define OPERAND_VALUE(offset) ((mode & (1 << (offset - 1))) == 0 ? vm->mem[FETCH_OPERAND(offset)] : FETCH_OPERAND_UNSAFE(offset))
-
+#define ADVANCE_IP() (vm->ip += 1 + intcode_vm_get_opcode_n_operands(opcode))
   unsigned char running = 1;
 
   // Fetch-decode-execute loop
   while(running && vm->ip < vm->mem_size) {
+    intcode_int opcode = FETCH_OPCODE();
     unsigned char mode = \
       ((FETCH_MODE() / 100) << 2) + \
       ((FETCH_MODE() % 100 / 10) << 1) + \
@@ -105,36 +116,46 @@ intcode_int intcode_vm_run(intcode_vm* vm) {
     intcode_vm_decode_and_print(vm, vm->ip);
     #endif
 
-    switch(FETCH_OPCODE()) {
+    switch(opcode) {
     case OP_ADD:
       OPERAND_REF(3) = OPERAND_VALUE(1) + OPERAND_VALUE(2);
-      #ifdef DEBUG
-      printf("= %lld\n", OPERAND_VALUE(1) + OPERAND_VALUE(2));
-      #endif
+      ADVANCE_IP();
       break;
     case OP_MUL:
       OPERAND_REF(3) = OPERAND_VALUE(1) * OPERAND_VALUE(2);
-      #ifdef DEBUG
-      printf("= %lld\n", OPERAND_VALUE(1) * OPERAND_VALUE(2));
-      #endif
+      ADVANCE_IP();
       break;
     case OP_IN:
       scanf("%lld", &OPERAND_REF(1));
+      ADVANCE_IP();
       break;
     case OP_OUT:
       printf("%lld\n", OPERAND_VALUE(1));
+      ADVANCE_IP();
       break;
     case OP_HALT:
       running = 0;
+      ADVANCE_IP();
       return vm->mem[0]; // Return the first value of the memory when halting.
+
+    // Added, not in the original spec
+    case OP_DIV:
+      OPERAND_REF(3) = OPERAND_VALUE(1) / OPERAND_VALUE(2);
+      ADVANCE_IP();
+      break;
+    case OP_JGE:
+      if(OPERAND_VALUE(1) >= OPERAND_VALUE(2)){
+        vm->ip = OPERAND_VALUE(3);
+      } else {
+        ADVANCE_IP();
+      }
+      break;
     default:
       running = 0;
       intcode_vm_panic(vm, "wrong opcode");
       break;
     }
 
-    // Advance by opcode size + # of operands
-    vm->ip += 1 + intcode_vm_get_opcode_n_operands(FETCH_OPCODE());
   }
 
   return vm->mem[0];

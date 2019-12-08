@@ -4,4 +4,70 @@ I started this year's Advent of Code pretty late. I was reading through some of 
 
 Before I started solving the first day's puzzle, I first implemented a very basic version of Intcode VM described in Day 2 and Day 5. I might need to add more opcodes not included in the described spec in the puzzles, if something is impossible to implement on top of the VM.
 
-You can build the VM by running `make`.
+You can build the VM by running `make`. To debug, run `CFLAGS=-DDEBUG make`.
+
+** Day 1
+
+The first puzzle requires you to use division, which an Intcode computer doesn't have. and we also need a way to jump to a different address based on a condition. Otherwise, we need to copy the same logic 100 times to solve the first problem.
+
+So on Day 1, I'm adding `DIV a b c`(50, Divide) and `JGE a b c`(60, Jump if Greater or Equal).
+
+Run `make day1` to get the answer.
+
+** Day 2
+
+*** Part 1
+This is probably the easiest, because we already have the VM implemented! To solve this one, I only had to replace the two 0 values to `12,2` as the puzzle mentioned, and added `4,0,` before `99` to print the value of the memory location 0.
+
+Run `make day2_p1`.
+
+*** Part 2
+This is harder. We basically have to optimize the values of the input positions 1, 2 for the output to become 19690720. So my first strategy was to add more code at the end to check if the output was the desired output, and if not, change the input and go back to 0.
+
+But, it wasn't that easy, because a) since this machine code modifies code as it goes, the same code with the same input will not result in the same value, and b) the opcode at 0 wasn't ADD(1) anymore. So I added many lines of recovery code to change the code back to the original state, and fix the opcode. The following is what I added at the end:
+
+```
+  104:   ADD( 1001)     1     1     1
+  108:   JGE(10160)   100     1   120
+  112:   ADD( 1001)     2     1     2
+  116:   ADD( 1101)     0     0     1
+  120:   ADD( 1101)     0     0   257
+  124:   ADD( 1001)     0     0   257
+  128:   ADD( 1101)     0     3     3
+  132:   ADD( 1101)     0    19    19
+  136:   ADD( 1101)     0    23    23
+  140:   ADD( 1101)     0    27    27
+  144:   ADD( 1101)     0    31    31
+  148:   ADD( 1101)     0    35    35
+  152:   ADD( 1101)     0    39    39
+  156:   ADD( 1101)     0    43    43
+  160:   ADD( 1101)     0    47    47
+  164:   ADD( 1101)     0    51    51
+  168:   ADD( 1101)     0    43    43
+  172:   ADD( 1101)     0    47    47
+  176:   ADD( 1101)     0    51    51
+  180:   ADD( 1101)     0    55    55
+  184:   ADD( 1101)     0    59    59
+  188:   ADD( 1101)     0    63    63
+  192:   ADD( 1101)     0    67    67
+  196:   ADD( 1101)     0    71    71
+  200:   ADD( 1101)     0    75    75
+  204:   ADD( 1101)     0    79    79
+  208:   ADD( 1101)     0    83    83
+  212:   ADD( 1101)     0    87    87
+  216:   ADD( 1101)     0    91    91
+  220:   ADD( 1101)     0    95    95
+  224:   ADD( 1101)     0    99    99
+  228:   ADD( 1101)     0     1     0
+  232:   JGE(11060)   257 19690721     0
+  236:   JGE(10160) 19690719   257     0
+  240:   ADD( 1001)     1    -1     1
+  244:   OUT(    4)     1
+  246:   OUT(    4)     2
+  248:   JGE(11060)   257   100   300
+  252:   JGE(11160)     0     0     0
+  256:  HALT(   99)
+  257: INVALID(    0)
+```
+
+Run `make day2_p2` to get the answer.

@@ -19,6 +19,12 @@ TEST(program_with_no_halt) {
   intcode_vm_destroy(&vm);
 }
 
+TEST(program_with_newline) {
+  intcode_vm* vm = intcode_vm_new("1,0,\n1,0");
+  ASSERT_EQ(intcode_vm_run(vm), 1);
+  intcode_vm_destroy(&vm);
+}
+
 TEST(immediate_mode) {
   intcode_vm* vm = intcode_vm_new("1101,30,40,3,1002,3,50,0,99");
   ASSERT_EQ(intcode_vm_run(vm), 3500);
@@ -49,5 +55,20 @@ TEST(aoc_day2_example) {
   vm = intcode_vm_new("1,1,1,4,99,5,6,0,99");
   ASSERT_EQ(intcode_vm_run(vm), 30);
   ASSERT_EQ(vm->mem[4], 2);
+  intcode_vm_destroy(&vm);
+}
+
+// Added, not in the original spec.
+
+TEST(added_div) {
+  intcode_vm* vm = intcode_vm_new("1150,10,5,0");
+  ASSERT_EQ(intcode_vm_run(vm), 2);
+  intcode_vm_destroy(&vm);
+}
+
+TEST(added_jge) {
+  intcode_vm* vm = intcode_vm_new("1001,9,1,9,10160,100,9,0,99,0");
+  intcode_vm_run(vm);
+  ASSERT_EQ(vm->mem[9], 101);
   intcode_vm_destroy(&vm);
 }
