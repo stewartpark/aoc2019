@@ -1,0 +1,7 @@
+* Advent of Code 2019
+
+I started this year's Advent of Code pretty late. I was reading through some of the problems and found out that this year's problem involves an implementation of a simple virtual machine, which is one of my favorite topics in computer science. So this year, I'm going to build an [Intcode](https://adventofcode.com/2019/day/5) VM and a simple compiler against it and solve AoC problems on top of it.
+
+Before I started solving the first day's puzzle, I first implemented a very basic version of Intcode VM described in Day 2 and Day 5. I might need to add more opcodes not included in the described spec in the puzzles, if something is impossible to implement on top of the VM.
+
+You can build the VM by running `make`.
