@@ -17,7 +17,7 @@ Run ~make day1~ to get the answer.
 ** Day 2
 
 *** Part 1
-This is probably the easiest, because we already have the VM implemented! To solve this one, I only had to replace the two 0 values to `12,2` as the puzzle mentioned, and added `4,0,` before `99` to print the value of the memory location 0.
+This is probably the easiest, because we already have the VM implemented! To solve this one, I only had to replace the two 0 values to ~12,2~ as the puzzle mentioned, and added ~4,0~ before ~99~ to print the value of the memory location 0.
 
 Run ~make day2_p1~.
 
