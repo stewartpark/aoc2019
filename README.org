@@ -4,7 +4,7 @@ I started this year's Advent of Code pretty late. I was reading through some of 
 
 Before I started solving the first day's puzzle, I first implemented a very basic version of Intcode VM described in Day 2 and Day 5. I might need to add more opcodes not included in the described spec in the puzzles, if something is impossible to implement on top of the VM.
 
-You can build the VM by running ~make~. To debug, run ~CFLAGS=-DDEBUG make~.
+You can build the VM by running ~make~. To debug, run ~CFLAGS=-DDEBUG make~. To run tests, run ~make test~.
 
 ** Day 1
 
