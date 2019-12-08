@@ -70,4 +70,4 @@ But, it wasn't that easy, because a) since this machine code modifies code as it
   257: INVALID(    0)
 #+END_SRC
 
-Run `make day2_p2` to get the answer.
+Run ~make day2_p2~ to get the answer.
