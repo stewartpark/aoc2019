@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include "intcode_vm.h"
 
-#define MAX_FILE_SIZE 10240
+#define MAX_FILE_SIZE 1024 * 1024 * 10  // 10MB
 
 
 void print_usage(char *argv0) {
