@@ -114,8 +114,6 @@ intcode_int intcode_vm_run(intcode_vm* vm) {
 
     #ifdef DEBUG
     intcode_vm_decode_and_print(vm, vm->ip);
-    printf("\t\t\t\t\t\t\t\tr0: %lld, r1: %lld, sp: %lld, bp: %lld\n", vm->mem[26], vm->mem[27], vm->mem[29], vm->mem[28]);
-    printf("\t\t\t\t\t\t\t\tstack top: %lld,%lld,%lld,%lld,%lld,%lld,%lld,%lld\n", vm->mem[18], vm->mem[19], vm->mem[20], vm->mem[21],vm->mem[22],vm->mem[23],vm->mem[24],vm->mem[25]);
     #endif
 
     switch(opcode) {
