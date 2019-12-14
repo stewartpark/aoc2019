@@ -32,7 +32,7 @@ class Compiler:
                 # Since the user would want the address of the function, not
                 # the first value of the function, here we are wrapping it with Immediate.
                 addr = Immediate(self.global_scope[name].address)
-            f.add(Immediate(0), addr, value)
+            f.add(Immediate(0), value, addr)
         else:
             f.write_local(scope[name], value)
 
@@ -58,7 +58,6 @@ class Compiler:
             self.compile_expression(f, scope, tree.children[0], stack_size_neg)
         elif tree.kind == 'expr_logical':
             self.compile_expression(f, scope, tree.children[1], stack_size_neg)
-
             if tree.children[0].kind == 'NOT':
                 f.pop('r0')
 
@@ -69,7 +68,6 @@ class Compiler:
 
                 f.mul('r0', Immediate(-1), 'r0')  # negate the value
                 f.push('r0')
-
             if len(tree.children) == 4:
                 op = tree.children[2]
                 self.compile_expression(
@@ -238,11 +236,12 @@ class Compiler:
                 f.add(Immediate(0), 'r1', 0)
             else:  # a = expr
                 f.pop('r0')
-
-                # Assign a space within the stack frame
-                scope[var] = -stack_size_neg.intcode
-                stack_size_neg.intcode -= 1  # Grow negatively
-                # Save it in the local variable.
+                # If not exist
+                if var not in self.global_scope and var not in scope:
+                    # Assign a space within the stack frame
+                    scope[var] = -stack_size_neg.intcode
+                    stack_size_neg.intcode -= 1  # Grow negatively
+                # Save it in the variable.
                 self.set_var(f, scope, var, 'r0')
         elif tree.kind == 'if_statement':
             else_addr = Immediate(0)
@@ -264,8 +263,6 @@ class Compiler:
             for stat in tree.children[2]:
                 self.compile_statement(f, scope, stat, stack_size_neg)
             end_addr.intcode = f'$+{f.address.size - start + 1}'
-        elif tree.kind == 'loop_statement':
-            pass
         else:
             raise Exception(f"Unimplemented: {tree.kind}")
 
@@ -305,7 +302,6 @@ class Compiler:
 
     def compile(self, ast):
         self.reset()
-
         self.add_builtin()
 
         # Register all functions/global vars first so it can reference each other regardless of the order of definitions

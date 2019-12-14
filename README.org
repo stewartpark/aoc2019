@@ -71,3 +71,100 @@ But, it wasn't that easy, because a) since this machine code modifies code as it
 #+END_SRC
 
 Run ~make day2_p2~ to get the answer.
+
+** Day 3
+I looked at the problem briefly and and was like... there is no way I'm gonna solve this problem in pure Intcode code... So, I decided to write a simple compiled programming language implementation on top of this architecture. Here's the pseudo BNF of a simple programming language. I named this Intlang.
+
+#+BEGIN_SRC
+// Intlang v1
+// comments(# ...) and whitespaces will be ignored
+
+program = (function_definition)*;
+global_variable_definition
+                    = IDENT EQ INT;
+function_definition = 'fn' IDENT '(' (IDENT (',' IDENT)*)? ')'
+                        statement*
+                      'end';
+
+statement =  (assignment | expression | if_statement)*;
+assignment = IDENT '=' expression;
+if_statement
+           = 'if' expression
+                statement*
+             'else'
+                statement*
+             'end';
+
+expression = expr_logical;
+expr_logical = 'not'? expr_comparison (('and' | 'or') expr_logical)?
+expr_comparison = expr_add (('<' | '<=' | '=' | '!=' | '>' | '=>') expr_comparison)?
+expr_add   = expr_mul (('+' | '-') expr_add)?;
+expr_mul   = expr_atom (('*' | '/') expr_mul)?;
+expr_atom  =
+           ( '(' expression ')'
+           | IDENT
+           | INT
+           | expr_atom_list
+           )
+           expr_atom_func_args?
+           expr_atom_index*;
+expr_atom_func_args
+           = '(' (expression (',' expression)*)? ')';
+expr_atom_list
+           = '[' (expression (',' expression)*)? ']';
+expr_atom_index
+           = '[' expression ']';
+#+END_SRC
+
+I implemented a recursive descent parser of the above syntax in Python. But to generate code, there were still things to figure out like call stack, calling convention, memory layout, how to implement missing operators, etc. So, here's what I come up with quickly so I can move on:
+
+#+BEGIN_SRC
+Intcode doesn't have registers so these memory locations will act as registers. (1 stack pointer register, 4 general purpose registers)
+
+STACK_POINTER = STACK_SIZE - 1
+BASE_POINTER = STACK_SIZE - 2
+REGISTER_0 = STACK_SIZE - 3
+REGISTER_1 = STACK_SIZE - 4
+REGISTER_2 = STACK_SIZE - 5
+REGISTER_3 = STACK_SIZE - 6
+
+This is the file format/memory layout. There's no relocation of sections or anything:
+
+jmp_code: JGE,0,0,$TEXT,                  ; VM starts at location 0, so add a jump code to jump to the text section.
+stack:    0,0,0,0,0,0,...,                ; Stack grows from high to low. It's better to be placed before text so a stack overflow won't override code
+text:     code,goes,here,...,             ; user code
+data:     global,variables,etc,...,       ; initialized/uninitialized data
+heap:     0,0,0,0,0,0,....                ; Heap grows from low to high, so it's better to be placed at the end.
+
+
+Calling convention/stack frame:
+
+The caller pushes a return address, arguments, the caller also cleans up stack.
+#+END_SRC
+
+If you're interested in how the mass of scribbles above is implemented, you can look at `./intlang/`, a compiler written in a very poor quality. (er, wanted to get to the problem as soon as possible...)
+
+Now you can do things like this:
+
+#+BEGIN_SRC
+fn fib(n)
+  if n <= 2
+    1
+  else
+    fib(n - 1) + fib(n - 2)
+  end
+end
+
+fn main()
+   print(fib(14))
+end
+#+END_SRC
+
+Pretty cool, right? However, there are many things missing in this langauge that you'd find in the system programming language you use daily:
+
+ - no type system, just int
+ - no list in a global variable definition (can be added later)
+ - no else if (this is actually not too bad)
+ - no loop (what?)
+
+... But, even having a really simple language made things much easier for me to solve the actual problem.
